@@ -16,4 +16,10 @@ type Config struct {
 		AppID     string
 		AppSecret string
 	}
+	SMTP struct {
+		Username string
+		Password string
+		Host     string
+		Port     int
+	}
 }

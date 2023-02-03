@@ -16,4 +16,9 @@ Redis:
 MiniProgram:
   AppID: $APP_ID
   AppSecret: $APP_SECRET
+SMTP:
+  Username: $SMTP_USERNAME
+  Password: $SMTP_PASSWORD
+  Host: $SMTP_HOST
+  Port: $SMTP_PORT
 
