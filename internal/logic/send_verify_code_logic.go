@@ -52,6 +52,7 @@ func (l *SendVerifyCodeLogic) SendVerifyCode(in *pb.SendVerifyCodeReq) (*pb.Send
 		if err != nil {
 			return nil, err
 		}
+		verifyCode = code.String()
 	default:
 		return nil, errorx.ErrInvalidArgument
 	}
