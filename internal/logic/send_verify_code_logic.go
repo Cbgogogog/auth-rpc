@@ -4,14 +4,13 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	"math/big"
-	"net/smtp"
-	"strconv"
-
 	"github.com/xh-polaris/auth-rpc/internal/errorx"
 	"github.com/xh-polaris/auth-rpc/internal/model"
 	"github.com/xh-polaris/auth-rpc/internal/svc"
 	"github.com/xh-polaris/auth-rpc/pb"
+	"math/big"
+	"net/smtp"
+	"strconv"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -48,7 +47,7 @@ func (l *SendVerifyCodeLogic) SendVerifyCode(in *pb.SendVerifyCodeReq) (*pb.Send
 				"From: xh-polaris\r\n"+
 				"Content-Type: text/plain"+"; charset=UTF-8\r\n"+
 				"Subject: 验证码\r\n\r\n"+
-				"%s\r\n", in.AuthId, code.String())))
+				"您正在进行喵社区账号注册，本次注册验证码为：%s，5分钟内有效，请勿透露给其他人。\r\n", in.AuthId, code.String())))
 		if err != nil {
 			return nil, err
 		}
@@ -56,7 +55,7 @@ func (l *SendVerifyCodeLogic) SendVerifyCode(in *pb.SendVerifyCodeReq) (*pb.Send
 	default:
 		return nil, errorx.ErrInvalidArgument
 	}
-	err := l.svcCtx.Redis.Hset(VerifyCodeKey, in.AuthId, verifyCode)
+	err := l.svcCtx.Redis.SetexCtx(l.ctx, VerifyCodeKeyPrefix+in.AuthId, verifyCode, 300)
 	if err != nil {
 		return nil, err
 	}

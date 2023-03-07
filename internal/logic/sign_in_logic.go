@@ -21,7 +21,7 @@ type SignInLogic struct {
 }
 
 const (
-	VerifyCodeKey = "verify_code"
+	VerifyCodeKeyPrefix = "verify:"
 )
 
 func NewSignInLogic(ctx context.Context, svcCtx *svc.ServiceContext) *SignInLogic {
@@ -95,7 +95,7 @@ func (l *SignInLogic) signInByPassword(in *pb.SignInReq) (string, error) {
 }
 
 func (l *SignInLogic) checkVerifyCode(opts []string, authValue string) (bool, error) {
-	verifyCode, err := l.svcCtx.Redis.Hget(VerifyCodeKey, authValue)
+	verifyCode, err := l.svcCtx.Redis.GetCtx(l.ctx, VerifyCodeKeyPrefix+authValue)
 	if err != nil {
 		if err == redis.Nil {
 			return false, nil
