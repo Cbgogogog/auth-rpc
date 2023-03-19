@@ -11,8 +11,16 @@ type Config struct {
 		URL string
 		DB  string
 	}
-	CacheConf   cache.CacheConf
-	MiniProgram struct {
+	CacheConf cache.CacheConf
+	Meowchat  struct {
+		AppID     string
+		AppSecret string
+	}
+	MeowchatOld struct {
+		AppID     string
+		AppSecret string
+	}
+	MeowchatManager struct {
 		AppID     string
 		AppSecret string
 	}

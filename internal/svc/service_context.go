@@ -19,7 +19,8 @@ type ServiceContext struct {
 	Config      config.Config
 	UserModel   model.UserModel
 	Redis       *redis.Redis
-	MiniProgram *miniprogram.MiniProgram
+	Meowchat    *miniprogram.MiniProgram
+	MeowchatOld *miniprogram.MiniProgram
 }
 
 func NewServiceContext(c config.Config) *ServiceContext {
@@ -28,9 +29,14 @@ func NewServiceContext(c config.Config) *ServiceContext {
 		Config:    c,
 		UserModel: model.NewUserModel(monc.MustNewModel(c.Mongo.URL, c.Mongo.DB, model.UserCollectionName, c.CacheConf)),
 		Redis:     c.Redis.NewRedis(),
-		MiniProgram: wechat.NewWechat().GetMiniProgram(&mpConfig.Config{
-			AppID:     c.MiniProgram.AppID,
-			AppSecret: c.MiniProgram.AppSecret,
+		Meowchat: wechat.NewWechat().GetMiniProgram(&mpConfig.Config{
+			AppID:     c.Meowchat.AppID,
+			AppSecret: c.Meowchat.AppSecret,
+			Cache:     cache.NewMemory(),
+		}),
+		MeowchatOld: wechat.NewWechat().GetMiniProgram(&mpConfig.Config{
+			AppID:     c.MeowchatOld.AppID,
+			AppSecret: c.MeowchatOld.AppSecret,
 			Cache:     cache.NewMemory(),
 		}),
 	}

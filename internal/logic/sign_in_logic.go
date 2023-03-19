@@ -2,7 +2,11 @@ package logic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
+
+	"github.com/silenceper/wechat/v2/util"
 
 	"github.com/xh-polaris/auth-rpc/internal/errorx"
 	"github.com/xh-polaris/auth-rpc/internal/model"
@@ -21,6 +25,7 @@ type SignInLogic struct {
 }
 
 const (
+	OAuthUrl            = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
 	VerifyCodeKeyPrefix = "verify:"
 )
 
@@ -115,18 +120,44 @@ func (l *SignInLogic) signInByWechat(in *pb.SignInReq) (string, error) {
 	}
 	jsCode := opts[0]
 
-	// 向微信开放接口提交临时code
-	res, err := l.svcCtx.MiniProgram.GetAuth().Code2SessionContext(l.ctx, jsCode)
-	if err != nil {
-		return "", err
-	} else if res.ErrCode != 0 {
-		return "", errors.New(res.ErrMsg)
+	var unionId string
+	if len(opts) < 2 {
+		// 向微信开放接口提交临时code
+		res, err := l.svcCtx.Meowchat.GetAuth().Code2SessionContext(l.ctx, jsCode)
+		if err != nil {
+			return "", err
+		} else if res.ErrCode != 0 {
+			return "", errors.New(res.ErrMsg)
+		}
+		unionId = res.UnionID
+	} else if opts[1] == "old" {
+		res, err := l.svcCtx.MeowchatOld.GetAuth().Code2SessionContext(l.ctx, jsCode)
+		if err != nil {
+			return "", err
+		} else if res.ErrCode != 0 {
+			return "", errors.New(res.ErrMsg)
+		}
+		unionId = res.UnionID
+	} else if opts[1] == "manager" {
+		c := l.svcCtx.Config.MeowchatManager
+		res, err := util.HTTPGetContext(l.ctx, fmt.Sprintf(OAuthUrl, c.AppID, c.AppSecret, jsCode))
+		if err != nil {
+			return "", err
+		}
+		var j map[string]any
+		if err = json.Unmarshal(res, &j); err != nil {
+			return "", err
+		}
+		if _, ok := j["unionid"]; !ok {
+			return "", errorx.ErrWrongWechatCode
+		}
+		unionId = j["unionid"].(string)
 	}
 
 	userModel := l.svcCtx.UserModel
 	auth := model.Auth{
 		Type:  in.AuthType,
-		Value: res.UnionID,
+		Value: unionId,
 	}
 	user, err := userModel.FindOneByAuth(l.ctx, auth)
 	switch err {
