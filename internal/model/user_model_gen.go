@@ -61,7 +61,7 @@ func (m *defaultUserModel) FindOne(ctx context.Context, id string) (*User, error
 func (m *defaultUserModel) Update(ctx context.Context, data *User) error {
 	data.UpdateAt = time.Now()
 	key := prefixUserCacheKey + data.ID.Hex()
-	_, err := m.conn.UpdateOne(ctx, key, bson.M{"_id": data.ID}, data)
+	_, err := m.conn.UpdateOne(ctx, key, bson.M{"_id": data.ID}, bson.M{"$set": data})
 	return err
 }
 
